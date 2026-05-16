@@ -76,6 +76,11 @@ function SavedEntryView({ onEdit }: { onEdit: () => void }) {
     { key: "hydration", label: "Hydration", value: todayEntry.bodyMetrics.hydration },
   ];
 
+  const levelColorMap: Record<number, string> = {
+    1: colors.mood1, 2: colors.mood2, 3: colors.mood3,
+    4: colors.mood4, 5: colors.mood5,
+  };
+
   return (
     <View style={{ gap: 16 }}>
       <View style={[styles.savedBanner, { backgroundColor: colors.primary + "18", borderColor: colors.primary + "40" }]}>
@@ -102,7 +107,7 @@ function SavedEntryView({ onEdit }: { onEdit: () => void }) {
               <Text style={[styles.savedMetricLabel, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
                 {m.label}
               </Text>
-              <Text style={[styles.savedMetricValue, { color: colors.accent, fontFamily: "Inter_600SemiBold" }]}>
+              <Text style={[styles.savedMetricValue, { color: levelColorMap[m.value] ?? colors.accent, fontFamily: "Inter_600SemiBold" }]}>
                 {METRIC_LABELS[m.key]?.[m.value - 1]}
               </Text>
             </View>

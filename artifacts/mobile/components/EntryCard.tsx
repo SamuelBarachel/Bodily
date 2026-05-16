@@ -156,35 +156,36 @@ export function EntryCard({ entry, expanded: initialExpanded = false }: EntryCar
             style={[styles.metricsDivider, { backgroundColor: colors.border }]}
           />
           <View style={styles.metricsRow}>
-            {metrics.map((m) => (
-              <View key={m.label} style={styles.metricChip}>
-                <Text
-                  style={[
-                    styles.metricChipLabel,
-                    {
-                      color: colors.mutedForeground,
-                      fontFamily: "Inter_400Regular",
-                    },
-                  ]}
-                >
-                  {m.label}
-                </Text>
-                <View style={styles.metricPips}>
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <View
-                      key={n}
-                      style={[
-                        styles.miniPip,
-                        {
-                          backgroundColor:
-                            n <= m.value ? colors.primary : colors.muted,
-                        },
-                      ]}
-                    />
-                  ))}
+            {metrics.map((m) => {
+              const levelColorMap: Record<number, string> = {
+                1: colors.mood1, 2: colors.mood2, 3: colors.mood3,
+                4: colors.mood4, 5: colors.mood5,
+              };
+              const levelColor = levelColorMap[m.value] ?? colors.primary;
+              return (
+                <View key={m.label} style={styles.metricChip}>
+                  <Text
+                    style={[
+                      styles.metricChipLabel,
+                      { color: colors.mutedForeground, fontFamily: "Inter_400Regular" },
+                    ]}
+                  >
+                    {m.label}
+                  </Text>
+                  <View style={styles.metricPips}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <View
+                        key={n}
+                        style={[
+                          styles.miniPip,
+                          { backgroundColor: n <= m.value ? levelColor : colors.muted },
+                        ]}
+                      />
+                    ))}
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
       )}

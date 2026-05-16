@@ -35,6 +35,15 @@ interface MetricRowProps {
 
 function MetricRow({ label, levels, value, onChange }: MetricRowProps) {
   const colors = useColors();
+  const levelColorMap: Record<number, string> = {
+    1: colors.mood1,
+    2: colors.mood2,
+    3: colors.mood3,
+    4: colors.mood4,
+    5: colors.mood5,
+  };
+  const levelColor = levelColorMap[value] ?? colors.mutedForeground;
+
   return (
     <View style={styles.metricRow}>
       <Text
@@ -57,8 +66,7 @@ function MetricRow({ label, levels, value, onChange }: MetricRowProps) {
             style={[
               styles.pip,
               {
-                backgroundColor:
-                  n <= value ? colors.primary : colors.muted,
+                backgroundColor: n <= value ? levelColor : colors.muted,
                 borderRadius: 4,
               },
             ]}
@@ -69,7 +77,7 @@ function MetricRow({ label, levels, value, onChange }: MetricRowProps) {
       <Text
         style={[
           styles.levelText,
-          { color: colors.accent, fontFamily: "Inter_500Medium" },
+          { color: levelColor, fontFamily: "Inter_600SemiBold" },
         ]}
       >
         {levels[value - 1]}
