@@ -142,7 +142,7 @@ export function InfoModal({ visible, onClose }: InfoModalProps) {
                   { backgroundColor: colors.primary + "12", borderColor: colors.primary + "30" },
                 ]}
               >
-                <Ionicons name="heart" size={18} color={colors.primary} />
+                <Ionicons name="globe-outline" size={18} color={colors.primary} />
                 <View style={{ flex: 1 }}>
                   <Text
                     style={[
@@ -150,7 +150,7 @@ export function InfoModal({ visible, onClose }: InfoModalProps) {
                       { color: colors.foreground, fontFamily: "Inter_600SemiBold" },
                     ]}
                   >
-                    Donations are welcome
+                    Help Bodily grow
                   </Text>
                   <Text
                     style={[
@@ -158,7 +158,7 @@ export function InfoModal({ visible, onClose }: InfoModalProps) {
                       { color: colors.mutedForeground, fontFamily: "Inter_400Regular" },
                     ]}
                   >
-                    If Bodily has helped your wellbeing practice, consider supporting its continued development.
+                    This app was built to reach people who need a simple, grounded way to reconnect with their bodies. Any support — sharing it, feedback, or otherwise — helps it find those people.
                   </Text>
                 </View>
               </View>

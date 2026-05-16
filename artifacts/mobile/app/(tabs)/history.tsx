@@ -7,11 +7,11 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
 import { useJournal, type JournalEntry } from "@/context/JournalContext";
 import { EntryCard } from "@/components/EntryCard";
+import { WeeklySparkline } from "@/components/WeeklySparkline";
 
 export default function HistoryScreen() {
   const colors = useColors();
@@ -41,7 +41,8 @@ export default function HistoryScreen() {
       : "—";
 
   const moodColorMap: Record<number, string> = {
-    1: colors.mood1, 2: colors.mood2, 3: colors.mood3, 4: colors.mood4, 5: colors.mood5,
+    1: colors.mood1, 2: colors.mood2, 3: colors.mood3,
+    4: colors.mood4, 5: colors.mood5,
   };
   const avgMoodColor =
     sortedEntries.length > 0
@@ -57,130 +58,58 @@ export default function HistoryScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.list,
-          {
-            paddingTop: topPadding + 16,
-            paddingBottom: bottomPadding + 100,
-          },
+          { paddingTop: topPadding + 16, paddingBottom: bottomPadding + 100 },
         ]}
         ListHeaderComponent={
-          <Animated.View entering={FadeIn.duration(400)}>
-            <Text
-              style={[
-                styles.title,
-                { color: colors.foreground, fontFamily: "Inter_700Bold" },
-              ]}
-            >
+          <View>
+            <Text style={[styles.title, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
               Journal History
             </Text>
-            <Text
-              style={[
-                styles.subtitle,
-                { color: colors.mutedForeground, fontFamily: "Inter_400Regular" },
-              ]}
-            >
+            <Text style={[styles.subtitle, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
               {sortedEntries.length} entr{sortedEntries.length !== 1 ? "ies" : "y"}
             </Text>
 
+            {/* Weekly sparkline */}
+            <View style={styles.sparklineWrapper}>
+              <WeeklySparkline />
+            </View>
+
             {sortedEntries.length > 0 && (
               <View style={styles.statsRow}>
-                <View
-                  style={[
-                    styles.statCard,
-                    { backgroundColor: colors.card, borderColor: colors.border },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.statNumber,
-                      { color: colors.primary, fontFamily: "Inter_700Bold" },
-                    ]}
-                  >
+                <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <Text style={[styles.statNumber, { color: colors.primary, fontFamily: "Inter_700Bold" }]}>
                     {sortedEntries.length}
                   </Text>
-                  <Text
-                    style={[
-                      styles.statLabel,
-                      {
-                        color: colors.mutedForeground,
-                        fontFamily: "Inter_400Regular",
-                      },
-                    ]}
-                  >
+                  <Text style={[styles.statLabel, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
                     Days logged
                   </Text>
                 </View>
-                <View
-                  style={[
-                    styles.statCard,
-                    { backgroundColor: colors.card, borderColor: colors.border },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.statNumber,
-                      { color: avgMoodColor, fontFamily: "Inter_700Bold" },
-                    ]}
-                  >
+                <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                  <Text style={[styles.statNumber, { color: avgMoodColor, fontFamily: "Inter_700Bold" }]}>
                     {avgLabel}
                   </Text>
-                  <Text
-                    style={[
-                      styles.statLabel,
-                      {
-                        color: colors.mutedForeground,
-                        fontFamily: "Inter_400Regular",
-                      },
-                    ]}
-                  >
+                  <Text style={[styles.statLabel, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
                     Average mood
                   </Text>
                 </View>
               </View>
             )}
 
-            <Text
-              style={[
-                styles.sectionHeader,
-                {
-                  color: colors.mutedForeground,
-                  fontFamily: "Inter_500Medium",
-                },
-              ]}
-            >
-              {sortedEntries.length > 0 ? "All entries" : ""}
-            </Text>
-          </Animated.View>
+            {sortedEntries.length > 0 && (
+              <Text style={[styles.sectionHeader, { color: colors.mutedForeground, fontFamily: "Inter_500Medium" }]}>
+                All entries
+              </Text>
+            )}
+          </View>
         }
         renderItem={({ item }) => <EntryCard entry={item} />}
         ListEmptyComponent={
-          <View
-            style={[
-              styles.emptyState,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
-            <Ionicons
-              name="book-outline"
-              size={40}
-              color={colors.mutedForeground}
-            />
-            <Text
-              style={[
-                styles.emptyTitle,
-                { color: colors.foreground, fontFamily: "Inter_600SemiBold" },
-              ]}
-            >
+          <View style={[styles.emptyState, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Ionicons name="book-outline" size={40} color={colors.mutedForeground} />
+            <Text style={[styles.emptyTitle, { color: colors.foreground, fontFamily: "Inter_600SemiBold" }]}>
               Nothing here yet
             </Text>
-            <Text
-              style={[
-                styles.emptyText,
-                {
-                  color: colors.mutedForeground,
-                  fontFamily: "Inter_400Regular",
-                },
-              ]}
-            >
+            <Text style={[styles.emptyText, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
               Your journal entries will appear here once you start writing
             </Text>
           </View>
@@ -193,17 +122,10 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   list: { paddingHorizontal: 20, gap: 0 },
-  title: {
-    fontSize: 28,
-    letterSpacing: -0.5,
-    marginBottom: 4,
-  },
-  subtitle: { fontSize: 14, marginBottom: 20 },
-  statsRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 24,
-  },
+  title: { fontSize: 28, letterSpacing: -0.5, marginBottom: 4 },
+  subtitle: { fontSize: 14, marginBottom: 16 },
+  sparklineWrapper: { marginBottom: 16 },
+  statsRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
   statCard: {
     flex: 1,
     borderRadius: 14,
@@ -229,9 +151,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   emptyTitle: { fontSize: 18 },
-  emptyText: {
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-  },
+  emptyText: { fontSize: 14, textAlign: "center", lineHeight: 20 },
 });
