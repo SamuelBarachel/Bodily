@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -16,6 +17,7 @@ import { useColors } from "@/hooks/useColors";
 import { useJournal, type BodyMetrics } from "@/context/JournalContext";
 import { MoodSelector } from "@/components/MoodSelector";
 import { MetricSelector } from "@/components/MetricSelector";
+import { InfoModal } from "@/components/InfoModal";
 
 function formatHeaderDate(): string {
   return new Date().toLocaleDateString("en-US", {
@@ -38,6 +40,21 @@ const METRIC_LABELS: Record<string, string[]> = {
   sleep: ["Poor", "Restless", "Fair", "Good", "Deep"],
   tension: ["Very High", "High", "Moderate", "Low", "None"],
   hydration: ["Parched", "Dry", "Okay", "Good", "Well"],
+};
+
+const MILESTONE_MESSAGES: Record<number, { title: string; body: string }> = {
+  7: {
+    title: "One week strong",
+    body: "Seven days of tuning in to your body. That consistency is worth celebrating.",
+  },
+  30: {
+    title: "Thirty day milestone",
+    body: "A full month of daily check-ins. Your body has been heard every day.",
+  },
+  60: {
+    title: "Sixty days of presence",
+    body: "Two months of showing up for yourself. This is a meaningful practice.",
+  },
 };
 
 function SavedEntryView({ onEdit }: { onEdit: () => void }) {
@@ -105,10 +122,46 @@ function SavedEntryView({ onEdit }: { onEdit: () => void }) {
   );
 }
 
+function MilestoneModal({ streak, onDismiss }: { streak: number; onDismiss: () => void }) {
+  const colors = useColors();
+  const msg = MILESTONE_MESSAGES[streak];
+  if (!msg) return null;
+
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onDismiss}>
+      <TouchableOpacity style={styles.milestoneOverlay} activeOpacity={1} onPress={onDismiss}>
+        <View style={[styles.milestoneCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={[styles.milestoneBadge, { backgroundColor: colors.primary }]}>
+            <Text style={[styles.milestoneNumber, { fontFamily: "Inter_700Bold" }]}>
+              {streak}
+            </Text>
+            <Text style={[styles.milestoneDays, { fontFamily: "Inter_400Regular" }]}>days</Text>
+          </View>
+          <Text style={[styles.milestoneTitle, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
+            {msg.title}
+          </Text>
+          <Text style={[styles.milestoneBody, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+            {msg.body}
+          </Text>
+          <TouchableOpacity
+            onPress={onDismiss}
+            style={[styles.milestoneDismiss, { backgroundColor: colors.primary }]}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.milestoneDismissText, { fontFamily: "Inter_600SemiBold" }]}>
+              Keep going
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
+
 export default function TodayScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { todayPrompt, todayEntry, saveEntry, loading } = useJournal();
+  const { todayPrompt, todayEntry, saveEntry, loading, streak, newMilestone, clearMilestone } = useJournal();
 
   const [editMode, setEditMode] = useState(!todayEntry);
   const [response, setResponse] = useState("");
@@ -117,6 +170,7 @@ export default function TodayScreen() {
     todayEntry?.bodyMetrics ?? { energy: 3, sleep: 3, tension: 3, hydration: 3 }
   );
   const [saving, setSaving] = useState(false);
+  const [infoVisible, setInfoVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
@@ -163,6 +217,25 @@ export default function TodayScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      {/* Floating info button */}
+      <TouchableOpacity
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          setInfoVisible(true);
+        }}
+        style={[
+          styles.infoBtn,
+          {
+            top: topPadding + 12,
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          },
+        ]}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Ionicons name="information-circle-outline" size={22} color={colors.mutedForeground} />
+      </TouchableOpacity>
+
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
@@ -172,14 +245,27 @@ export default function TodayScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View>
-          <Text style={[styles.greeting, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-            {getGreeting()}
-          </Text>
-          <Text style={[styles.dateText, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
-            {formatHeaderDate()}
-          </Text>
+        {/* Header row: greeting + streak */}
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1, paddingRight: 44 }}>
+            <Text style={[styles.greeting, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
+              {getGreeting()}
+            </Text>
+            <Text style={[styles.dateText, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
+              {formatHeaderDate()}
+            </Text>
+          </View>
         </View>
+
+        {/* Streak pill */}
+        {streak > 0 && (
+          <View style={[styles.streakPill, { backgroundColor: colors.accent + "18", borderColor: colors.accent + "35" }]}>
+            <Ionicons name="flame" size={15} color={colors.accent} />
+            <Text style={[styles.streakText, { color: colors.accent, fontFamily: "Inter_600SemiBold" }]}>
+              {streak} day{streak !== 1 ? "s" : ""} in a row
+            </Text>
+          </View>
+        )}
 
         <View style={[styles.promptCard, { backgroundColor: colors.primary }]}>
           <Ionicons name="leaf-outline" size={16} color="rgba(255,255,255,0.7)" />
@@ -260,6 +346,12 @@ export default function TodayScreen() {
           </>
         )}
       </ScrollView>
+
+      <InfoModal visible={infoVisible} onClose={() => setInfoVisible(false)} />
+
+      {newMilestone !== null && (
+        <MilestoneModal streak={newMilestone} onDismiss={clearMilestone} />
+      )}
     </View>
   );
 }
@@ -267,9 +359,33 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  scroll: { paddingHorizontal: 20, gap: 24 },
+  infoBtn: {
+    position: "absolute",
+    right: 20,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scroll: { paddingHorizontal: 20, gap: 20 },
+  headerRow: { flexDirection: "row", alignItems: "flex-end" },
   greeting: { fontSize: 15, marginBottom: 4 },
   dateText: { fontSize: 28, letterSpacing: -0.5 },
+  streakPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginTop: -8,
+  },
+  streakText: { fontSize: 13 },
   promptCard: {
     borderRadius: 16,
     padding: 18,
@@ -346,4 +462,45 @@ const styles = StyleSheet.create({
   },
   savedPromptText: { fontSize: 13, fontStyle: "italic", lineHeight: 18 },
   savedResponseText: { fontSize: 15, lineHeight: 23 },
+  milestoneOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  milestoneCard: {
+    width: "100%",
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 28,
+    alignItems: "center",
+    gap: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 16,
+  },
+  milestoneBadge: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  milestoneNumber: { color: "#fff", fontSize: 28, lineHeight: 32 },
+  milestoneDays: { color: "rgba(255,255,255,0.85)", fontSize: 13 },
+  milestoneTitle: { fontSize: 22, textAlign: "center", letterSpacing: -0.3 },
+  milestoneBody: { fontSize: 15, textAlign: "center", lineHeight: 22 },
+  milestoneDismiss: {
+    marginTop: 6,
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 14,
+    width: "100%",
+    alignItems: "center",
+  },
+  milestoneDismissText: { color: "#fff", fontSize: 16 },
 });

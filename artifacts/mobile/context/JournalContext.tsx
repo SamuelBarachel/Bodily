@@ -4,10 +4,13 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
 const STORAGE_KEY = "@bodily_journal_entries";
+const MILESTONES_KEY = "@bodily_milestones_seen";
+const MILESTONES = [7, 30, 60];
 
 export interface BodyMetrics {
   energy: number;
@@ -63,10 +66,36 @@ function formatDate(date: Date): string {
   return date.toISOString().split("T")[0];
 }
 
+function calculateStreak(entries: Record<string, JournalEntry>): number {
+  let streak = 0;
+  const now = new Date();
+  const todayStr = formatDate(now);
+  const checkDate = new Date(now);
+
+  // Grace: if today has no entry yet, start checking from yesterday so streak isn't broken mid-day
+  if (!entries[todayStr]) {
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  while (streak < 365) {
+    const dateStr = formatDate(checkDate);
+    if (entries[dateStr]) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
 interface JournalContextType {
   entries: Record<string, JournalEntry>;
   todayPrompt: string;
   todayEntry: JournalEntry | null;
+  streak: number;
+  newMilestone: number | null;
+  clearMilestone: () => void;
   saveEntry: (data: {
     response: string;
     mood: number;
@@ -81,18 +110,24 @@ const JournalContext = createContext<JournalContextType | null>(null);
 export function JournalProvider({ children }: { children: React.ReactNode }) {
   const [entries, setEntries] = useState<Record<string, JournalEntry>>({});
   const [loading, setLoading] = useState(true);
+  const [seenMilestones, setSeenMilestones] = useState<number[]>([]);
+  const [newMilestone, setNewMilestone] = useState<number | null>(null);
 
   const todayKey = formatDate(new Date());
   const todayPrompt = getTodayPrompt();
   const todayEntry = entries[todayKey] ?? null;
 
+  const streak = useMemo(() => calculateStreak(entries), [entries]);
+
   useEffect(() => {
     const load = async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          setEntries(JSON.parse(raw));
-        }
+        const [raw, milestonesRaw] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEY),
+          AsyncStorage.getItem(MILESTONES_KEY),
+        ]);
+        if (raw) setEntries(JSON.parse(raw));
+        if (milestonesRaw) setSeenMilestones(JSON.parse(milestonesRaw));
       } catch {
         // ignore
       } finally {
@@ -101,6 +136,24 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    if (streak === 0) return;
+    const unshown = MILESTONES.find(
+      (m) => streak >= m && !seenMilestones.includes(m)
+    );
+    if (unshown) {
+      setNewMilestone(unshown);
+    }
+  }, [streak, seenMilestones]);
+
+  const clearMilestone = useCallback(async () => {
+    if (newMilestone === null) return;
+    const updated = [...seenMilestones, newMilestone];
+    setSeenMilestones(updated);
+    setNewMilestone(null);
+    await AsyncStorage.setItem(MILESTONES_KEY, JSON.stringify(updated));
+  }, [newMilestone, seenMilestones]);
 
   const saveEntry = useCallback(
     async (data: {
@@ -136,7 +189,17 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <JournalContext.Provider
-      value={{ entries, todayPrompt, todayEntry, saveEntry, deleteEntry, loading }}
+      value={{
+        entries,
+        todayPrompt,
+        todayEntry,
+        streak,
+        newMilestone,
+        clearMilestone,
+        saveEntry,
+        deleteEntry,
+        loading,
+      }}
     >
       {children}
     </JournalContext.Provider>
