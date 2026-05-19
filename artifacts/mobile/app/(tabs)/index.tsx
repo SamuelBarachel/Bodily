@@ -49,7 +49,12 @@ function NamePromptModal({
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    if (visible) setTimeout(() => inputRef.current?.focus(), 300);
+    if (!visible) {
+      return;
+    }
+
+    const timeout = setTimeout(() => inputRef.current?.focus(), 300);
+    return () => clearTimeout(timeout);
   }, [visible]);
 
   return (
@@ -83,7 +88,7 @@ function NamePromptModal({
               { color: colors.mutedForeground, fontFamily: "Inter_400Regular" },
             ]}
           >
-            What should we call you?
+            Let&apos;s make this easy. What should we call you?
           </Text>
           <TextInput
             ref={inputRef}
