@@ -28,25 +28,25 @@ args = "Start application"
 name = "Start API"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
 waitForPort = 8080
 
-[workflows.workflow.metadata]
-outputType = "console"
-
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "PORT=18115 pnpm --filter @workspace/mobile run dev"
-waitForPort = 18115
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=5000 pnpm --filter @workspace/mobile run dev"
+waitForPort = 5000
 
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
@@ -61,12 +61,17 @@ localPort = 8080
 externalPort = 8080
 
 [[ports]]
-localPort = 8081
-externalPort = 8081
+localPort = 18115
+externalPort = 80
 
 [[ports]]
-localPort = 18115
+localPort = 5000
 externalPort = 80
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+REPLIT_EXPO_DEV_DOMAIN = "4cefea8f-e0a8-47b9-a3ff-26272effd2c6-00-1pxaoly1c8fpc.picard.replit.dev"
