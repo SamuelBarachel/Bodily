@@ -6,7 +6,7 @@ services:
     startCommand: pnpm --filter @workspace/api-server run start
 
   - type: web
-    name: bodily-frontend
+    name: bodily
     env: node
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/mobile run build
     startCommand: pnpm --filter @workspace/mobile run serve
