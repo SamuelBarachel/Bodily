@@ -1,12 +1,6 @@
 services:
   - type: web
-    name: bodily-api
-    env: node
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
-    startCommand: pnpm --filter @workspace/api-server run start
-
-  - type: web
     name: bodily
     env: node
-    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/mobile run build
-    startCommand: pnpm --filter @workspace/mobile run serve
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/mobile run build && pnpm --filter @workspace/api-server run build
+    startCommand: pnpm --filter @workspace/api-server run start
