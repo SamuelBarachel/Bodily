@@ -105,10 +105,10 @@ function getDeploymentDomain() {
     return stripProtocol(process.env.BUILD_DOMAIN);
   }
 
-  console.error(
-    "ERROR: No deployment domain found. Set REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, EXPO_PUBLIC_DOMAIN, RENDER_EXTERNAL_HOSTNAME, or BUILD_DOMAIN",
+  console.warn(
+    "WARN: No deployment domain found. Falling back to localhost. Set REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, EXPO_PUBLIC_DOMAIN, RENDER_EXTERNAL_HOSTNAME, or BUILD_DOMAIN to override.",
   );
-  process.exit(1);
+  return "localhost";
 }
 
 function prepareDirectories(timestamp) {
