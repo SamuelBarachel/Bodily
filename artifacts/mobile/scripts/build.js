@@ -5,6 +5,9 @@ const { Readable } = require("stream");
 const { pipeline } = require("stream/promises");
 
 let metroProcess = null;
+const MAX_METRO_LOG_LINES = Number(process.env.MAX_METRO_LOG_LINES || 200);
+let metroLogLineCount = 0;
+let metroLogSuppressed = false;
 
 const projectRoot = path.resolve(__dirname, "..");
 
@@ -28,6 +31,31 @@ function exitWithError(message) {
     metroProcess.kill();
   }
   process.exit(1);
+}
+
+function logMetroOutput(prefix, output, logFn = console.log) {
+  if (!output) return;
+
+  const lines = output
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    if (metroLogLineCount < MAX_METRO_LOG_LINES) {
+      logFn(`${prefix} ${line}`);
+      metroLogLineCount += 1;
+      continue;
+    }
+
+    if (!metroLogSuppressed) {
+      console.warn(
+        `[Metro] log limit reached (${MAX_METRO_LOG_LINES} lines). Further Metro output suppressed.`,
+      );
+      metroLogSuppressed = true;
+    }
+    break;
+  }
 }
 
 function setupSignalHandlers() {
@@ -138,6 +166,9 @@ function getExpoPublicReplId() {
 }
 
 async function startMetro(expoPublicDomain, expoPublicReplId) {
+  metroLogLineCount = 0;
+  metroLogSuppressed = false;
+
   const isRunning = await checkMetroHealth();
   if (isRunning) {
     console.log("Metro already running");
@@ -177,14 +208,12 @@ async function startMetro(expoPublicDomain, expoPublicReplId) {
 
   if (metroProcess.stdout) {
     metroProcess.stdout.on("data", (data) => {
-      const output = data.toString().trim();
-      if (output) console.log(`[Metro] ${output}`);
+      logMetroOutput("[Metro]", data.toString(), console.log);
     });
   }
   if (metroProcess.stderr) {
     metroProcess.stderr.on("data", (data) => {
-      const output = data.toString().trim();
-      if (output) console.error(`[Metro Error] ${output}`);
+      logMetroOutput("[Metro Error]", data.toString(), console.error);
     });
   }
 
