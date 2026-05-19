@@ -1,10 +1,8 @@
+import app from "./app";
 import { logger } from "./lib/logger";
 
-async function runBackgroundTasks(): Promise<void> {
-  logger.info("API background process started");
-}
+const port = parseInt(process.env.PORT ?? "8080", 10);
 
-runBackgroundTasks().catch((err) => {
-  logger.error({ err }, "API background process failed");
-  process.exit(1);
+app.listen(port, "0.0.0.0", () => {
+  logger.info({ port }, "API server listening");
 });
