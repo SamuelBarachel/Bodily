@@ -13,6 +13,7 @@ import { useColors } from "@/hooks/useColors";
 import { useJournal, type JournalEntry, type PainMarker } from "@/context/JournalContext";
 import { EntryCard } from "@/components/EntryCard";
 import { WeeklySparkline } from "@/components/WeeklySparkline";
+import { PainTrendsChart } from "@/components/PainTrendsChart";
 
 const PAIN_COLORS: Record<number, string> = {
   1: "#22c55e",
@@ -203,7 +204,7 @@ const phStyles = StyleSheet.create({
 export default function HistoryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { entries } = useJournal();
+  const { entries, userName } = useJournal();
 
   const sortedEntries: JournalEntry[] = useMemo(() => {
     return Object.values(entries).sort(
@@ -260,6 +261,9 @@ export default function HistoryScreen() {
             <View style={styles.sparklineWrapper}>
               <WeeklySparkline />
             </View>
+
+            {/* Pain trends chart */}
+            <PainTrendsChart entries={entries} />
 
             {sortedEntries.length > 0 && (
               <View style={styles.statsRow}>
