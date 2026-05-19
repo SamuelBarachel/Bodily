@@ -5,19 +5,14 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin";
 
+const basePath = process.env.BASE_PATH || "/";
 const rawPort = process.env.PORT;
 
-if (rawPort !== undefined && rawPort.trim() === "") {
-  throw new Error('Invalid PORT value: ""');
-}
-
-const port = rawPort ? Number(rawPort) : 5173;
-
-if (Number.isNaN(port) || port <= 0) {
+if (rawPort !== undefined && (rawPort.trim() === "" || Number.isNaN(Number(rawPort)) || Number(rawPort) <= 0)) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-const basePath = process.env.BASE_PATH || "/";
+const devPort = rawPort ? Number(rawPort) : undefined;
 
 export default defineConfig({
   base: basePath,
@@ -48,7 +43,7 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port,
+    ...(devPort ? { port: devPort } : {}),
     host: "0.0.0.0",
     allowedHosts: true,
     fs: {
@@ -56,7 +51,7 @@ export default defineConfig({
     },
   },
   preview: {
-    port,
+    ...(devPort ? { port: devPort } : {}),
     host: "0.0.0.0",
     allowedHosts: true,
   },
