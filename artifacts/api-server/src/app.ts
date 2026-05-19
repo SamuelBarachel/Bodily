@@ -33,9 +33,16 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-const webDist = path.resolve(__dirname, "../../web/dist");
+const webDistCandidates = [
+  path.resolve(__dirname, "../../web/dist"),
+  path.resolve(__dirname, "../web/dist"),
+  path.resolve(process.cwd(), "artifacts/web/dist"),
+  path.resolve(process.cwd(), "web/dist"),
+];
 
-if (fs.existsSync(webDist)) {
+const webDist = webDistCandidates.find((candidate) => fs.existsSync(candidate));
+
+if (webDist) {
   app.use(express.static(webDist));
 
   app.get("*", (_req: Request, res: Response) => {
