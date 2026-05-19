@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "EXPO_PUBLIC_API_URL=https://bodily-api.onrender.com pnpm exec expo start --localhost",
     "build": "node scripts/build.js",
-    "serve": "node server/serve.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
