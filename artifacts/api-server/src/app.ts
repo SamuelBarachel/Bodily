@@ -46,6 +46,14 @@ if (fs.existsSync(webDist)) {
       res.status(404).send("Not found");
     }
   });
+} else {
+  app.get("/", (_req: Request, res: Response) => {
+    res.status(200).json({
+      service: "bodily-api",
+      status: "ok",
+      message: "Web client is not built. Use /api/health to verify API status.",
+    });
+  });
 }
 
 export default app;
