@@ -15,8 +15,15 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { JournalProvider } from "@/context/JournalContext";
+import { setBaseUrl } from "@workspace/api-client-react";
 
 SplashScreen.preventAutoHideAsync();
+
+const rawApiUrl = process.env.EXPO_PUBLIC_API_URL;
+if (rawApiUrl) {
+  const apiUrl = rawApiUrl.startsWith("http") ? rawApiUrl : `https://${rawApiUrl}`;
+  setBaseUrl(apiUrl);
+}
 
 const queryClient = new QueryClient();
 
