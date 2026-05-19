@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: entries
+    description: Journal entry operations
 paths:
   /healthz:
     get:
@@ -50,6 +52,75 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SummarizeResponse"
+  /entries:
+    get:
+      operationId: getEntries
+      tags: [entries]
+      summary: Get all journal entries for a user
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: All entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntriesResponse"
+  /entries/{date}:
+    put:
+      operationId: saveEntry
+      tags: [entries]
+      summary: Save or update a journal entry
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalEntry"
+      responses:
+        "200":
+          description: Entry saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalEntry"
+    delete:
+      operationId: deleteEntry
+      tags: [entries]
+      summary: Delete a journal entry
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Entry deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteEntryResponse"
 components:
   schemas:
     HealthStatus:
@@ -66,3 +137,80 @@ components:
           type: string
       required:
         - summary
+    BodyMetrics:
+      type: object
+      properties:
+        energy:
+          type: number
+        tension:
+          type: number
+        sleep:
+          type: number
+        hydration:
+          type: number
+      required:
+        - energy
+        - tension
+        - sleep
+        - hydration
+    PainMarker:
+      type: object
+      properties:
+        slug:
+          type: string
+        painLevel:
+          type: number
+        notes:
+          type: string
+        summary:
+          type: string
+      required:
+        - slug
+        - painLevel
+        - notes
+        - summary
+    JournalEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+        prompt:
+          type: string
+        response:
+          type: string
+        mood:
+          type: number
+        bodyMetrics:
+          $ref: "#/components/schemas/BodyMetrics"
+        createdAt:
+          type: string
+        painMarkers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PainMarker"
+      required:
+        - id
+        - date
+        - prompt
+        - response
+        - mood
+        - bodyMetrics
+        - createdAt
+    EntriesResponse:
+      type: object
+      properties:
+        entries:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/JournalEntry"
+      required:
+        - entries
+    DeleteEntryResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+      required:
+        - ok

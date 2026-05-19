@@ -7,10 +7,12 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { getEntries, saveEntry as apiSaveEntry, deleteEntry as apiDeleteEntry } from "@workspace/api-client-react";
 
 const STORAGE_KEY = "@bodily_journal_entries";
 const MILESTONES_KEY = "@bodily_milestones_seen";
 const USERNAME_KEY = "@bodily_username";
+const USERID_KEY = "@bodily_user_id";
 const MILESTONES = [7, 30, 60];
 
 export interface BodyMetrics {
@@ -36,6 +38,14 @@ export interface JournalEntry {
   bodyMetrics: BodyMetrics;
   createdAt: string;
   painMarkers?: PainMarker[];
+}
+
+function generateUserId(): string {
+  const s4 = () =>
+    Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
 }
 
 const DAILY_PROMPTS = [
@@ -81,7 +91,6 @@ function calculateStreak(entries: Record<string, JournalEntry>): number {
   const todayStr = formatDate(now);
   const checkDate = new Date(now);
 
-  // Grace: if today has no entry yet, start checking from yesterday so streak isn't broken mid-day
   if (!entries[todayStr]) {
     checkDate.setDate(checkDate.getDate() - 1);
   }
@@ -115,6 +124,7 @@ interface JournalContextType {
   loading: boolean;
   userName: string;
   setUserName: (name: string) => Promise<void>;
+  syncing: boolean;
 }
 
 const JournalContext = createContext<JournalContextType | null>(null);
@@ -122,9 +132,11 @@ const JournalContext = createContext<JournalContextType | null>(null);
 export function JournalProvider({ children }: { children: React.ReactNode }) {
   const [entries, setEntries] = useState<Record<string, JournalEntry>>({});
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [seenMilestones, setSeenMilestones] = useState<number[]>([]);
   const [newMilestone, setNewMilestone] = useState<number | null>(null);
   const [userName, setUserNameState] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
 
   const todayKey = formatDate(new Date());
   const todayPrompt = getTodayPrompt();
@@ -135,17 +147,47 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const load = async () => {
       try {
-        const [raw, milestonesRaw, nameRaw] = await Promise.all([
+        const [raw, milestonesRaw, nameRaw, storedUserId] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEY),
           AsyncStorage.getItem(MILESTONES_KEY),
           AsyncStorage.getItem(USERNAME_KEY),
+          AsyncStorage.getItem(USERID_KEY),
         ]);
-        if (raw) setEntries(JSON.parse(raw));
+
+        let uid = storedUserId;
+        if (!uid) {
+          uid = generateUserId();
+          await AsyncStorage.setItem(USERID_KEY, uid);
+        }
+        setUserId(uid);
+
+        const localEntries: Record<string, JournalEntry> = raw
+          ? JSON.parse(raw)
+          : {};
+
+        if (Object.keys(localEntries).length > 0) {
+          setEntries(localEntries);
+        }
+
         if (milestonesRaw) setSeenMilestones(JSON.parse(milestonesRaw));
         if (nameRaw) setUserNameState(nameRaw);
+
+        setLoading(false);
+
+        setSyncing(true);
+        try {
+          const result = await getEntries({ userId: uid });
+          if (result.entries && Object.keys(result.entries).length > 0) {
+            const merged = { ...localEntries, ...result.entries };
+            setEntries(merged);
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+          }
+        } catch {
+          // Firebase unreachable — local data remains
+        } finally {
+          setSyncing(false);
+        }
       } catch {
-        // ignore
-      } finally {
         setLoading(false);
       }
     };
@@ -192,11 +234,20 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
         createdAt: new Date().toISOString(),
         painMarkers: data.painMarkers,
       };
+
       const updated = { ...entries, [todayKey]: entry };
       setEntries(updated);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+      if (userId) {
+        try {
+          await apiSaveEntry(todayKey, entry, { userId });
+        } catch {
+          // Firebase write failed — entry is still saved locally
+        }
+      }
     },
-    [entries, todayKey, todayPrompt]
+    [entries, todayKey, todayPrompt, userId]
   );
 
   const deleteEntry = useCallback(
@@ -205,8 +256,16 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
       delete updated[date];
       setEntries(updated);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+      if (userId) {
+        try {
+          await apiDeleteEntry(date, { userId });
+        } catch {
+          // Firebase delete failed — entry is still removed locally
+        }
+      }
     },
-    [entries]
+    [entries, userId]
   );
 
   return (
@@ -223,6 +282,7 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
         loading,
         userName,
         setUserName,
+        syncing,
       }}
     >
       {children}

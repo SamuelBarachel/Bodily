@@ -7,7 +7,6 @@
  */
 import * as zod from 'zod';
 
-
 /**
  * Returns server health status
  * @summary Health check
@@ -28,4 +27,105 @@ export const SummarizeBodilyRecordingBody = zod.object({
 
 export const SummarizeBodilyRecordingResponse = zod.object({
   "summary": zod.string()
+})
+
+
+/**
+ * @summary Get all journal entries for a user
+ */
+export const GetEntriesQueryParams = zod.object({
+  "userId": zod.coerce.string()
+})
+
+export const GetEntriesResponse = zod.object({
+  "entries": zod.record(zod.string(), zod.object({
+  "id": zod.string(),
+  "date": zod.string(),
+  "prompt": zod.string(),
+  "response": zod.string(),
+  "mood": zod.number(),
+  "bodyMetrics": zod.object({
+  "energy": zod.number(),
+  "tension": zod.number(),
+  "sleep": zod.number(),
+  "hydration": zod.number()
+}),
+  "createdAt": zod.string(),
+  "painMarkers": zod.array(zod.object({
+  "slug": zod.string(),
+  "painLevel": zod.number(),
+  "notes": zod.string(),
+  "summary": zod.string()
+})).optional()
+}))
+})
+
+
+/**
+ * @summary Save or update a journal entry
+ */
+export const SaveEntryParams = zod.object({
+  "date": zod.coerce.string()
+})
+
+export const SaveEntryQueryParams = zod.object({
+  "userId": zod.coerce.string()
+})
+
+export const SaveEntryBody = zod.object({
+  "id": zod.string(),
+  "date": zod.string(),
+  "prompt": zod.string(),
+  "response": zod.string(),
+  "mood": zod.number(),
+  "bodyMetrics": zod.object({
+  "energy": zod.number(),
+  "tension": zod.number(),
+  "sleep": zod.number(),
+  "hydration": zod.number()
+}),
+  "createdAt": zod.string(),
+  "painMarkers": zod.array(zod.object({
+  "slug": zod.string(),
+  "painLevel": zod.number(),
+  "notes": zod.string(),
+  "summary": zod.string()
+})).optional()
+})
+
+export const SaveEntryResponse = zod.object({
+  "id": zod.string(),
+  "date": zod.string(),
+  "prompt": zod.string(),
+  "response": zod.string(),
+  "mood": zod.number(),
+  "bodyMetrics": zod.object({
+  "energy": zod.number(),
+  "tension": zod.number(),
+  "sleep": zod.number(),
+  "hydration": zod.number()
+}),
+  "createdAt": zod.string(),
+  "painMarkers": zod.array(zod.object({
+  "slug": zod.string(),
+  "painLevel": zod.number(),
+  "notes": zod.string(),
+  "summary": zod.string()
+})).optional()
+})
+
+
+/**
+ * @summary Delete a journal entry
+ */
+export const DeleteEntryParams = zod.object({
+  "date": zod.coerce.string()
+})
+
+export const DeleteEntryQueryParams = zod.object({
+  "userId": zod.coerce.string()
+})
+
+export const DeleteEntryResponse = zod.object({
+  "ok": zod.boolean()
 })

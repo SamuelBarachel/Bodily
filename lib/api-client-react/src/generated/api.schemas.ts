@@ -13,7 +13,55 @@ export interface SummarizeResponse {
   summary: string;
 }
 
+export interface BodyMetrics {
+  energy: number;
+  tension: number;
+  sleep: number;
+  hydration: number;
+}
+
+export interface PainMarker {
+  slug: string;
+  painLevel: number;
+  notes: string;
+  summary: string;
+}
+
+export interface JournalEntry {
+  id: string;
+  date: string;
+  prompt: string;
+  response: string;
+  mood: number;
+  bodyMetrics: BodyMetrics;
+  createdAt: string;
+  painMarkers?: PainMarker[];
+}
+
+export type EntriesResponseEntries = {[key: string]: JournalEntry};
+
+export interface EntriesResponse {
+  entries: EntriesResponseEntries;
+}
+
+export interface DeleteEntryResponse {
+  ok: boolean;
+}
+
 export type SummarizeBodilyRecordingBody = {
   bodyPart: string;
   transcript: string;
 };
+
+export type GetEntriesParams = {
+userId: string;
+};
+
+export type SaveEntryParams = {
+userId: string;
+};
+
+export type DeleteEntryParams = {
+userId: string;
+};
+

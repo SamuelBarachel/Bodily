@@ -20,7 +20,13 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  DeleteEntryParams,
+  DeleteEntryResponse,
+  EntriesResponse,
+  GetEntriesParams,
   HealthStatus,
+  JournalEntry,
+  SaveEntryParams,
   SummarizeBodilyRecordingBody,
   SummarizeResponse
 } from './api.schemas';
@@ -186,3 +192,248 @@ export const useSummarizeBodilyRecording = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getSummarizeBodilyRecordingMutationOptions(options));
     }
+
+export const getGetEntriesUrl = (params: GetEntriesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/entries?${stringifiedParams}` : `/api/entries`
+}
+
+/**
+ * @summary Get all journal entries for a user
+ */
+export const getEntries = async (params: GetEntriesParams, options?: RequestInit): Promise<EntriesResponse> => {
+
+  return customFetch<EntriesResponse>(getGetEntriesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEntriesQueryKey = (params?: GetEntriesParams,) => {
+    return [
+    `/api/entries`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetEntriesQueryOptions = <TData = Awaited<ReturnType<typeof getEntries>>, TError = ErrorType<unknown>>(params: GetEntriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEntries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEntriesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEntries>>> = ({ signal }) => getEntries(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEntries>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEntriesQueryResult = NonNullable<Awaited<ReturnType<typeof getEntries>>>
+export type GetEntriesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get all journal entries for a user
+ */
+
+export function useGetEntries<TData = Awaited<ReturnType<typeof getEntries>>, TError = ErrorType<unknown>>(
+ params: GetEntriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEntries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEntriesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveEntryUrl = (date: string,
+    params: SaveEntryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/entries/${date}?${stringifiedParams}` : `/api/entries/${date}`
+}
+
+/**
+ * @summary Save or update a journal entry
+ */
+export const saveEntry = async (date: string,
+    journalEntry: JournalEntry,
+    params: SaveEntryParams, options?: RequestInit): Promise<JournalEntry> => {
+
+  return customFetch<JournalEntry>(getSaveEntryUrl(date,params),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      journalEntry,)
+  }
+);}
+
+
+
+
+export const getSaveEntryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEntry>>, TError,{date: string;data: BodyType<JournalEntry>;params: SaveEntryParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveEntry>>, TError,{date: string;data: BodyType<JournalEntry>;params: SaveEntryParams}, TContext> => {
+
+const mutationKey = ['saveEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveEntry>>, {date: string;data: BodyType<JournalEntry>;params: SaveEntryParams}> = (props) => {
+          const {date,data,params} = props ?? {};
+
+          return  saveEntry(date,data,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveEntryMutationResult = NonNullable<Awaited<ReturnType<typeof saveEntry>>>
+    export type SaveEntryMutationBody = BodyType<JournalEntry>
+    export type SaveEntryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save or update a journal entry
+ */
+export const useSaveEntry = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEntry>>, TError,{date: string;data: BodyType<JournalEntry>;params: SaveEntryParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveEntry>>,
+        TError,
+        {date: string;data: BodyType<JournalEntry>;params: SaveEntryParams},
+        TContext
+      > => {
+      return useMutation(getSaveEntryMutationOptions(options));
+    }
+
+export const getDeleteEntryUrl = (date: string,
+    params: DeleteEntryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/entries/${date}?${stringifiedParams}` : `/api/entries/${date}`
+}
+
+/**
+ * @summary Delete a journal entry
+ */
+export const deleteEntry = async (date: string,
+    params: DeleteEntryParams, options?: RequestInit): Promise<DeleteEntryResponse> => {
+
+  return customFetch<DeleteEntryResponse>(getDeleteEntryUrl(date,params),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteEntryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEntry>>, TError,{date: string;params: DeleteEntryParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteEntry>>, TError,{date: string;params: DeleteEntryParams}, TContext> => {
+
+const mutationKey = ['deleteEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteEntry>>, {date: string;params: DeleteEntryParams}> = (props) => {
+          const {date,params} = props ?? {};
+
+          return  deleteEntry(date,params,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteEntryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteEntry>>>
+
+    export type DeleteEntryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a journal entry
+ */
+export const useDeleteEntry = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteEntry>>, TError,{date: string;params: DeleteEntryParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteEntry>>,
+        TError,
+        {date: string;params: DeleteEntryParams},
+        TContext
+      > => {
+      return useMutation(getDeleteEntryMutationOptions(options));
+    }
+
