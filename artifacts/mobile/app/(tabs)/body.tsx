@@ -175,7 +175,7 @@ export default function BodyTab() {
   };
 
   const bodyData = Object.entries(markedParts).map(([slug, data]) => ({
-    slug,
+    slug: slug as any,
     intensity: 1,
     color: PAIN_COLORS[data.painLevel],
   }));
