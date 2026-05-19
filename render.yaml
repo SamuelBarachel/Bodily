@@ -2,5 +2,15 @@ services:
   - type: web
     name: bodily
     env: node
+    region: oregon
+    plan: free
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/web run build && pnpm --filter @workspace/api-server run build
     startCommand: pnpm --filter @workspace/api-server run start
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FIREBASE_JSON
+        sync: false
