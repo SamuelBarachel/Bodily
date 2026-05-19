@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './healthStatus';
-export * from './summarizeBodilyRecordingBody';
-export * from './summarizeResponse';
+export type SummarizeBodilyRecordingBody = {
+  bodyPart: string;
+  transcript: string;
+};

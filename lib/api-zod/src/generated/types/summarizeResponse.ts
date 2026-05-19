@@ -6,6 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './healthStatus';
-export * from './summarizeBodilyRecordingBody';
-export * from './summarizeResponse';
+export interface SummarizeResponse {
+  summary: string;
+}

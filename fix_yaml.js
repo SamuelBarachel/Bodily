@@ -1,4 +1,6 @@
-openapi: 3.1.0
+const fs = require('fs');
+
+const data = `openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
@@ -66,3 +68,6 @@ components:
           type: string
       required:
         - summary
+`;
+
+fs.writeFileSync('lib/api-spec/openapi.yaml', data);
