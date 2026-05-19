@@ -4,8 +4,8 @@ A bodily symptom journaling app with an interactive body model. Users tap a body
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080 locally)
-- `pnpm --filter @workspace/mobile run dev` — run the Expo mobile/web dev server (port 18115)
+- `pnpm --filter @workspace/api-server run dev` — run the API server
+- `pnpm --filter @workspace/mobile run dev` — run the Expo mobile/web dev server
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -31,8 +31,7 @@ A bodily symptom journaling app with an interactive body model. Users tap a body
 
 ## Architecture decisions
 
-- **`setBaseUrl` at app boot**: `_layout.tsx` reads `EXPO_PUBLIC_API_URL` and calls `setBaseUrl()` from the generated API client. Handles both bare hostname (Render) and full URL (local dev) by prepending `https://` if missing.
-- **Local dev API URL**: The mobile `dev` script injects `EXPO_PUBLIC_API_URL=https://$REPLIT_DEV_DOMAIN:8080` so the Expo web preview can reach the API server on port 8080.
+- **`setBaseUrl` at app boot**: `_layout.tsx` reads `EXPO_PUBLIC_API_URL` and calls `setBaseUrl()` from the generated API client. Handles both bare hostname and full URL by prepending `https://` if missing.
 - **Render deployment**: `render.yaml` sets `EXPO_PUBLIC_API_URL` from the api service `host` property (hostname only). The `_layout.tsx` adds `https://` automatically.
 - **No backend DB**: Journal entries are stored locally in AsyncStorage. Only the Groq summarization call touches the API.
 
@@ -45,18 +44,10 @@ A bodily symptom journaling app with an interactive body model. Users tap a body
 
 ## User preferences
 
-- GROQ_API_KEY is stored in Replit Secrets (shared env) and Render environment
+- GROQ_API_KEY is stored in Render environment
 
 ## Gotchas
 
 - `expo-speech` must stay at `~14.0.8` to match the installed Expo 54 version
-- The API server requires `PORT` env var — locally set to `8080` via workflow command
 - Typecheck errors in `mockup-sandbox` are pre-existing and do not affect the app
 - Render `fromService.property: host` gives hostname only (no scheme) — handled in `_layout.tsx`
-
-## Ports (local dev)
-
-| Port  | Service           | External |
-|-------|-------------------|----------|
-| 8080  | API server        | :8080    |
-| 18115 | Mobile dev server | :80      |
