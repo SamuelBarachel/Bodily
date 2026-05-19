@@ -4,24 +4,9 @@ services:
     env: node
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
     startCommand: pnpm --filter @workspace/api-server run start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: GROQ_API_KEY
-        sync: false
-      - key: FIREBASE_JSON
-        sync: false
 
   - type: web
     name: bodily-frontend
     env: node
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/mobile run build
     startCommand: pnpm --filter @workspace/mobile run serve
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: EXPO_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: bodily-api
-          property: host
