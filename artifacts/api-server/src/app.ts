@@ -33,7 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
-const webDist = path.resolve(__dirname, "../../mobile/dist");
+const webDist = path.resolve(__dirname, "../../web/dist");
 
 if (fs.existsSync(webDist)) {
   app.use(express.static(webDist));

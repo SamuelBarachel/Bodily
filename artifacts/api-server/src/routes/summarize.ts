@@ -2,7 +2,13 @@ import { Router, type IRouter } from "express";
 import { Groq } from "groq-sdk";
 
 const router: IRouter = Router();
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+function getGroqClient(): Groq {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is not set");
+  }
+  return new Groq({ apiKey: process.env.GROQ_API_KEY });
+}
 
 router.post("/summarize-bodily-recording", async (req, res): Promise<void> => {
   try {
@@ -13,6 +19,7 @@ router.post("/summarize-bodily-recording", async (req, res): Promise<void> => {
       return;
     }
 
+    const groq = getGroqClient();
     const completion = await groq.chat.completions.create({
       messages: [
         {

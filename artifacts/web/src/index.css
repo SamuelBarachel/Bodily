@@ -1,0 +1,94 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: "Geist", "Inter", sans-serif;
+}
+
+:root {
+  --background: 30 25% 94%; /* #F5F0EB */
+  --foreground: 39 35% 13%; /* #2C2415 */
+  --card: 0 0% 100%; /* #FFFFFF */
+  --card-foreground: 39 35% 13%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 39 35% 13%;
+  --primary: 138 25% 39%; /* #4A7C59 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 33 24% 91%; /* #EDE8E2 */
+  --secondary-foreground: 39 35% 13%;
+  --muted: 33 24% 91%;
+  --muted-foreground: 27 10% 44%; /* #7A6E64 */
+  --accent: 24 45% 54%; /* #C17F54 */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 37 20% 83%; /* #DDD5C8 */
+  --input: 37 20% 83%;
+  --ring: 138 25% 39%;
+  --radius: 1rem;
+  
+  --mood1: 10 65% 57%; /* #D95F48 */
+  --mood2: 24 74% 63%; /* #E8935A */
+  --mood3: 50 45% 61%; /* #C9B96D */
+  --mood4: 137 26% 59%; /* #7BB08A */
+  --mood5: 138 25% 39%; /* #4A7C59 */
+
+  --pain1: 142 71% 45%;
+  --pain2: 84 81% 44%;
+  --pain3: 45 93% 47%;
+  --pain4: 25 95% 53%;
+  --pain5: 0 84% 60%;
+  --pain6: 0 63% 31%;
+}
+
+.dark {
+  --background: 60 13% 9%; /* #1A1A14 */
+  --foreground: 38 33% 91%; /* #F0EAE0 */
+  --card: 60 18% 12%; /* #242419 */
+  --card-foreground: 38 33% 91%;
+  --popover: 60 18% 12%;
+  --popover-foreground: 38 33% 91%;
+  --primary: 138 24% 48%; /* #5E9970 */
+  --primary-foreground: 60 13% 9%;
+  --secondary: 42 12% 16%; /* #2E2B24 */
+  --secondary-foreground: 38 33% 91%;
+  --muted: 42 12% 16%;
+  --muted-foreground: 37 11% 55%; /* #9A9080 */
+  --accent: 24 45% 54%;
+  --accent-foreground: 60 13% 9%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 38 33% 91%;
+  --border: 40 12% 20%; /* #3A362E */
+  --input: 40 12% 20%;
+  --ring: 138 24% 48%;
+  
+  --mood1: 10 65% 57%;
+  --mood2: 24 74% 63%;
+  --mood3: 50 45% 61%;
+  --mood4: 137 26% 59%;
+  --mood5: 138 25% 39%;
+}
+
+* {
+  border-color: hsl(var(--border));
+  box-sizing: border-box;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
