@@ -10,6 +10,7 @@ import React, {
 
 const STORAGE_KEY = "@bodily_journal_entries";
 const MILESTONES_KEY = "@bodily_milestones_seen";
+const USERNAME_KEY = "@bodily_username";
 const MILESTONES = [7, 30, 60];
 
 export interface BodyMetrics {
@@ -17,6 +18,13 @@ export interface BodyMetrics {
   tension: number;
   sleep: number;
   hydration: number;
+}
+
+export interface PainMarker {
+  slug: string;
+  painLevel: number;
+  notes: string;
+  summary: string;
 }
 
 export interface JournalEntry {
@@ -27,6 +35,7 @@ export interface JournalEntry {
   mood: number;
   bodyMetrics: BodyMetrics;
   createdAt: string;
+  painMarkers?: PainMarker[];
 }
 
 const DAILY_PROMPTS = [
@@ -100,9 +109,12 @@ interface JournalContextType {
     response: string;
     mood: number;
     bodyMetrics: BodyMetrics;
+    painMarkers?: PainMarker[];
   }) => Promise<void>;
   deleteEntry: (date: string) => Promise<void>;
   loading: boolean;
+  userName: string;
+  setUserName: (name: string) => Promise<void>;
 }
 
 const JournalContext = createContext<JournalContextType | null>(null);
@@ -112,6 +124,7 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [seenMilestones, setSeenMilestones] = useState<number[]>([]);
   const [newMilestone, setNewMilestone] = useState<number | null>(null);
+  const [userName, setUserNameState] = useState<string>("");
 
   const todayKey = formatDate(new Date());
   const todayPrompt = getTodayPrompt();
@@ -122,12 +135,14 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const load = async () => {
       try {
-        const [raw, milestonesRaw] = await Promise.all([
+        const [raw, milestonesRaw, nameRaw] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEY),
           AsyncStorage.getItem(MILESTONES_KEY),
+          AsyncStorage.getItem(USERNAME_KEY),
         ]);
         if (raw) setEntries(JSON.parse(raw));
         if (milestonesRaw) setSeenMilestones(JSON.parse(milestonesRaw));
+        if (nameRaw) setUserNameState(nameRaw);
       } catch {
         // ignore
       } finally {
@@ -155,11 +170,17 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(MILESTONES_KEY, JSON.stringify(updated));
   }, [newMilestone, seenMilestones]);
 
+  const setUserName = useCallback(async (name: string) => {
+    setUserNameState(name);
+    await AsyncStorage.setItem(USERNAME_KEY, name);
+  }, []);
+
   const saveEntry = useCallback(
     async (data: {
       response: string;
       mood: number;
       bodyMetrics: BodyMetrics;
+      painMarkers?: PainMarker[];
     }) => {
       const entry: JournalEntry = {
         id: todayKey,
@@ -169,6 +190,7 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
         mood: data.mood,
         bodyMetrics: data.bodyMetrics,
         createdAt: new Date().toISOString(),
+        painMarkers: data.painMarkers,
       };
       const updated = { ...entries, [todayKey]: entry };
       setEntries(updated);
@@ -199,6 +221,8 @@ export function JournalProvider({ children }: { children: React.ReactNode }) {
         saveEntry,
         deleteEntry,
         loading,
+        userName,
+        setUserName,
       }}
     >
       {children}

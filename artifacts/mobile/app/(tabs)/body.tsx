@@ -144,6 +144,13 @@ export default function BodyTab() {
       )
       .join("\n");
 
+    const painMarkers = Object.entries(updated).map(([slug, d]) => ({
+      slug,
+      painLevel: d.painLevel,
+      notes: d.notes,
+      summary: d.summary,
+    }));
+
     await saveEntry({
       response: `Pain Map:\n${partsText}`,
       mood: Math.max(1, Math.round(6 - (selectedPainLevel - 1) * (4 / 5))),
@@ -153,6 +160,7 @@ export default function BodyTab() {
         tension: selectedPainLevel,
         hydration: 3,
       },
+      painMarkers,
     });
 
     setModalVisible(false);

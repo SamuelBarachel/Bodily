@@ -11,6 +11,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/hooks/useColors";
@@ -27,12 +28,153 @@ function formatHeaderDate(): string {
   });
 }
 
-function getGreeting(): string {
+function getGreeting(name?: string): string {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
+  let base: string;
+  if (hour < 12) base = "Good morning";
+  else if (hour < 17) base = "Good afternoon";
+  else base = "Good evening";
+  return name ? `${base}, ${name}` : base;
 }
+
+function NamePromptModal({
+  visible,
+  onSave,
+}: {
+  visible: boolean;
+  onSave: (name: string) => void;
+}) {
+  const colors = useColors();
+  const [draft, setDraft] = useState("");
+  const inputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (visible) setTimeout(() => inputRef.current?.focus(), 300);
+  }, [visible]);
+
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={nameStyles.overlay}
+      >
+        <View
+          style={[
+            nameStyles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <View
+            style={[nameStyles.iconWrap, { backgroundColor: colors.primary + "18" }]}
+          >
+            <Ionicons name="person-outline" size={28} color={colors.primary} />
+          </View>
+          <Text
+            style={[
+              nameStyles.title,
+              { color: colors.foreground, fontFamily: "Inter_700Bold" },
+            ]}
+          >
+            Welcome to Bodily
+          </Text>
+          <Text
+            style={[
+              nameStyles.subtitle,
+              { color: colors.mutedForeground, fontFamily: "Inter_400Regular" },
+            ]}
+          >
+            What should we call you?
+          </Text>
+          <TextInput
+            ref={inputRef}
+            value={draft}
+            onChangeText={setDraft}
+            placeholder="Your name"
+            placeholderTextColor={colors.mutedForeground}
+            returnKeyType="done"
+            onSubmitEditing={() => draft.trim() && onSave(draft.trim())}
+            style={[
+              nameStyles.input,
+              {
+                backgroundColor: colors.background,
+                color: colors.foreground,
+                borderColor: draft ? colors.primary : colors.border,
+                fontFamily: "Inter_400Regular",
+              },
+            ]}
+          />
+          <TouchableOpacity
+            style={[
+              nameStyles.btn,
+              {
+                backgroundColor:
+                  draft.trim() ? colors.primary : colors.border,
+              },
+            ]}
+            disabled={!draft.trim()}
+            onPress={() => onSave(draft.trim())}
+          >
+            <Text
+              style={[nameStyles.btnText, { fontFamily: "Inter_600SemiBold" }]}
+            >
+              Let's go
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+const nameStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 28,
+  },
+  card: {
+    width: "100%",
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: 28,
+    alignItems: "center",
+    gap: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  iconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  title: { fontSize: 22, letterSpacing: -0.3 },
+  subtitle: { fontSize: 15, marginTop: -4 },
+  input: {
+    width: "100%",
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    marginTop: 4,
+  },
+  btn: {
+    width: "100%",
+    paddingVertical: 15,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  btnText: { color: "#fff", fontSize: 16 },
+});
 
 const MOOD_LABELS = ["", "Drained", "Tired", "Okay", "Energized", "Thriving"];
 const METRIC_LABELS: Record<string, string[]> = {
@@ -166,8 +308,9 @@ function MilestoneModal({ streak, onDismiss }: { streak: number; onDismiss: () =
 export default function TodayScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { todayPrompt, todayEntry, saveEntry, loading, streak, newMilestone, clearMilestone } = useJournal();
+  const { todayPrompt, todayEntry, saveEntry, loading, streak, newMilestone, clearMilestone, userName, setUserName } = useJournal();
 
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [editMode, setEditMode] = useState(!todayEntry);
   const [response, setResponse] = useState("");
   const [mood, setMood] = useState(todayEntry?.mood ?? 3);
@@ -177,6 +320,12 @@ export default function TodayScreen() {
   const [saving, setSaving] = useState(false);
   const [infoVisible, setInfoVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (!loading && !userName) {
+      setShowNamePrompt(true);
+    }
+  }, [loading, userName]);
 
   useEffect(() => {
     if (todayEntry) {
@@ -254,7 +403,7 @@ export default function TodayScreen() {
         <View style={styles.headerRow}>
           <View style={{ flex: 1, paddingRight: 44 }}>
             <Text style={[styles.greeting, { color: colors.mutedForeground, fontFamily: "Inter_400Regular" }]}>
-              {getGreeting()}
+              {getGreeting(userName || undefined)}
             </Text>
             <Text style={[styles.dateText, { color: colors.foreground, fontFamily: "Inter_700Bold" }]}>
               {formatHeaderDate()}
@@ -357,6 +506,14 @@ export default function TodayScreen() {
       {newMilestone !== null && (
         <MilestoneModal streak={newMilestone} onDismiss={clearMilestone} />
       )}
+
+      <NamePromptModal
+        visible={showNamePrompt}
+        onSave={async (name) => {
+          await setUserName(name);
+          setShowNamePrompt(false);
+        }}
+      />
     </View>
   );
 }
