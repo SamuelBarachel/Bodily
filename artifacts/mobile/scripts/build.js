@@ -67,8 +67,18 @@ function getDeploymentDomain() {
     return stripProtocol(process.env.EXPO_PUBLIC_DOMAIN);
   }
 
+  // Render sets this automatically for every web service
+  if (process.env.RENDER_EXTERNAL_HOSTNAME) {
+    return stripProtocol(process.env.RENDER_EXTERNAL_HOSTNAME);
+  }
+
+  // Generic fallback — allows any host to be injected via BUILD_DOMAIN
+  if (process.env.BUILD_DOMAIN) {
+    return stripProtocol(process.env.BUILD_DOMAIN);
+  }
+
   console.error(
-    "ERROR: No deployment domain found. Set REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, or EXPO_PUBLIC_DOMAIN",
+    "ERROR: No deployment domain found. Set REPLIT_INTERNAL_APP_DOMAIN, REPLIT_DEV_DOMAIN, EXPO_PUBLIC_DOMAIN, RENDER_EXTERNAL_HOSTNAME, or BUILD_DOMAIN",
   );
   process.exit(1);
 }
