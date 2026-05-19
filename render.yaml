@@ -9,6 +9,8 @@ services:
         value: production
       - key: GROQ_API_KEY
         sync: false
+      - key: FIREBASE_JSON
+        sync: false
 
   - type: web
     name: bodily-frontend
