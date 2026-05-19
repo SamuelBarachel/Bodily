@@ -11,6 +11,10 @@ import { useColors } from "@/hooks/useColors";
 function NativeTabLayout() {
   return (
     <NativeTabs>
+      <NativeTabs.Trigger name="body">
+        <Icon sf={{ default: "figure.walk", selected: "figure.walk" }} />
+        <Label>Body</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "leaf", selected: "leaf.fill" }} />
         <Label>Today</Label>
@@ -83,6 +87,18 @@ function ClassicTabLayout() {
               <SymbolView name="calendar" tintColor={color} size={22} />
             ) : (
               <Feather name="calendar" size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="body"
+        options={{
+          title: "Body",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="figure.walk" tintColor={color} size={22} />
+            ) : (
+              <Ionicons name="body-outline" size={22} color={color} />
             ),
         }}
       />
