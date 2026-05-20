@@ -4,8 +4,9 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "dev": "EXPO_PUBLIC_API_URL=https://bodily-api.onrender.com pnpm exec expo start --localhost",
+    "dev": "EXPO_PUBLIC_API_URL=https://$REPLIT_DEV_DOMAIN:8080 pnpm exec expo start --localhost --port $PORT",
     "build": "node scripts/build.js",
+    "build:web": "expo export --platform web --output-dir dist",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
