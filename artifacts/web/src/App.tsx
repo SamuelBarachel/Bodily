@@ -1,13 +1,25 @@
+import { useState, useEffect } from "react";
 import { Route, Switch } from "wouter";
 import { JournalProvider } from "@/context/JournalContext";
 import { Toaster } from "sonner";
 import { Layout } from "./components/Layout";
+import { LockScreen, isPinSet } from "./components/LockScreen";
 import Today from "./pages/Today";
 import BodyMap from "./pages/BodyMap";
 import Calendar from "./pages/Calendar";
 import History from "./pages/History";
 
 export default function App() {
+  const [locked, setLocked] = useState(() => isPinSet());
+
+  useEffect(() => {
+    setLocked(isPinSet());
+  }, []);
+
+  if (locked) {
+    return <LockScreen onUnlock={() => setLocked(false)} />;
+  }
+
   return (
     <JournalProvider>
       <Layout>
