@@ -56,13 +56,13 @@ export default function BodyMap() {
 
   const getPainColor = (level: number) => {
     switch(level) {
-      case 1: return "var(--pain1)";
-      case 2: return "var(--pain2)";
-      case 3: return "var(--pain3)";
-      case 4: return "var(--pain4)";
-      case 5: return "var(--pain5)";
-      case 6: return "var(--pain6)";
-      default: return "var(--border)";
+      case 1: return "hsl(142, 71%, 45%)";
+      case 2: return "hsl(84, 81%, 44%)";
+      case 3: return "hsl(45, 93%, 47%)";
+      case 4: return "hsl(25, 95%, 53%)";
+      case 5: return "hsl(0, 84%, 60%)";
+      case 6: return "hsl(0, 63%, 31%)";
+      default: return "hsl(37, 20%, 83%)";
     }
   };
 
@@ -185,19 +185,21 @@ export default function BodyMap() {
           {activeRegions.map(region => {
             const marker = currentMarkers.find(m => m.slug === region.id);
             const fillColor = marker ? getPainColor(marker.painLevel) : "transparent";
-            const strokeColor = marker ? "none" : "hsl(var(--border))";
-            
+            const strokeColor = marker ? "none" : "hsl(37, 20%, 83%)";
+
             return (
               <circle
                 key={region.id}
                 cx={region.cx}
                 cy={region.cy}
                 r={region.r}
-                fill={fillColor}
-                stroke={strokeColor}
                 strokeWidth="1"
                 className="cursor-pointer transition-all hover:opacity-80"
-                style={{ filter: marker ? 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))' : 'none' }}
+                style={{
+                  fill: fillColor,
+                  stroke: strokeColor,
+                  filter: marker ? 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))' : 'none',
+                }}
                 onPointerDown={() => handleRegionClick(region.id)}
               />
             );
@@ -223,7 +225,7 @@ export default function BodyMap() {
                     key={lvl}
                     onClick={() => setPainLevel(lvl)}
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-medium transition-transform ${painLevel === lvl ? 'scale-110 shadow-md text-white' : 'opacity-50 text-foreground'}`}
-                    style={{ backgroundColor: `hsl(${getPainColor(lvl)})` }}
+                    style={{ backgroundColor: getPainColor(lvl) }}
                   >
                     {lvl}
                   </button>

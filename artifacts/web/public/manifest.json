@@ -1,0 +1,18 @@
+{
+  "name": "Bodily — Body Symptom Journal",
+  "short_name": "Bodily",
+  "description": "Track your body symptoms, pain, and daily wellbeing in a personal journal.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F0EB",
+  "theme_color": "#4A7C59",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
