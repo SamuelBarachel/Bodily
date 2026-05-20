@@ -1,4 +1,8 @@
 #!/bin/bash
 set -e
-pnpm install --frozen-lockfile
-pnpm --filter db push
+
+echo "Installing dependencies..."
+pnpm install --frozen-lockfile --reporter=silent
+
+echo "Pushing database schema..."
+pnpm --filter @workspace/db run push
